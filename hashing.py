@@ -96,36 +96,61 @@ class HashTable:
 
         return False
 
-def menu():
+def print_menu():
     print("==== Pharmacy Inventory System ===")
     print("1. Insert Product")
     print("2. Search Product")
     print("3. Edit Product")
     print("4. Delete Product")
+    print("5. Exit")
 
 def main():
     table_size = 5
-    ht = HashTable(table_size)
+    inventory = HashTable(table_size)
 
-    medicines = [
-        Medicine(1001, "Paracetamol", 5.50, 50),
-        Medicine(1002, "Cough Syrup", 12.00, 20),
-        Medicine(1006,"Antihistamine", 9.00, 30)
-    ]
+    choice = 0
 
-    for medicine in medicines:
-        if ht.insert(medicine):
-            print(f"{medicine.name} is added")
-        else:
-            print(f"Could not add product {medicine.product_id}")
+    while choice != 5:
+        print_menu()
+        choice = int(input("Enter choice(1-5): "))
 
-    search_result = ht.search(1006)
+        if choice == 1:
+            product_id = int(input("Enter Product ID: "))
+            name = input("Enter Product Name: ")
+            price = float(input("Enter Product Price: "))
+            quantity = int(input("Enter Stock Quantity: "))
+            medicine = Medicine(product_id, name, price, quantity)
+            if inventory.insert(medicine):
+                print(f"Medicine is added")
+            else:
+                print(f"Could not add product {medicine.product_id}")
+        elif choice == 2:
+            product_id = int(input("Enter Product ID: "))
+            search_result = inventory.search(product_id)
 
-    if search_result is not False:
-        print(f"\nMedicine found:")
-        print(search_result)
-    else:
-        print("\nMedicine not found.")
+            if search_result is not False:
+                print(search_result)
+            else:
+                print("Medicine not found")
+
+        elif choice == 3:
+            product_id = int(input("Enter Product ID: "))
+            name = input("Enter Product Name: ")
+            price = float(input("Enter Product Price: "))
+            quantity = int(input("Enter Stock Quantity: "))
+            if inventory.edit(product_id, name, price, quantity):
+                print(f"Medicine is edited.")
+            else:
+                print("Medicine not found.")
+        elif choice == 4:
+            product_id = int(input("Enter Product ID: "))
+
+            if inventory.delete(product_id):
+                print("Medicine deleted successfully.")
+            else:
+                print("Medicine not found.")
+        elif choice == 5:
+            print("Exiting Inventory System. Goodbye!")
 
 if __name__ == "__main__":
     main()
