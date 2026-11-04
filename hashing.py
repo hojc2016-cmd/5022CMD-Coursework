@@ -93,8 +93,40 @@ class HashTable:
                     next_index = (next_index + 1) % self.size
 
                 return True
-
         return False
+
+def get_integer(prompt):
+    value = None
+
+    while value is None:
+        try:
+            value = int(input(prompt))
+        except ValueError:
+            print("Please enter a whole number.")
+
+    return value
+
+
+def get_float(prompt):
+    value = None
+
+    while value is None:
+        try:
+            value = float(input(prompt))
+        except ValueError:
+            print("Please enter a valid number.")
+
+    return value
+
+
+def get_text(prompt):
+    value = input(prompt).strip()
+
+    while not value:
+        print("This field cannot be empty.")
+        value = input(prompt).strip()
+
+    return value
 
 def print_menu():
     print("==== Pharmacy Inventory System ===")
@@ -112,20 +144,21 @@ def main():
 
     while choice != 5:
         print_menu()
-        choice = int(input("Enter choice(1-5): "))
+        choice = get_integer("Enter choice(1-5): ")
 
         if choice == 1:
-            product_id = int(input("Enter Product ID: "))
-            name = input("Enter Product Name: ")
-            price = float(input("Enter Product Price: "))
-            quantity = int(input("Enter Stock Quantity: "))
+            product_id = get_integer("Enter Product ID: ")
+            name = get_text("Enter Product Name: ")
+            price = get_float("Enter Product Price: ")
+            quantity = get_integer("Enter Stock Quantity: ")
             medicine = Medicine(product_id, name, price, quantity)
+
             if inventory.insert(medicine):
                 print(f"Medicine is added")
             else:
                 print(f"Could not add product {medicine.product_id}")
         elif choice == 2:
-            product_id = int(input("Enter Product ID: "))
+            product_id = get_integer("Enter Product ID: ")
             search_result = inventory.search(product_id)
 
             if search_result is not False:
@@ -134,16 +167,17 @@ def main():
                 print("Medicine not found")
 
         elif choice == 3:
-            product_id = int(input("Enter Product ID: "))
-            name = input("Enter Product Name: ")
-            price = float(input("Enter Product Price: "))
-            quantity = int(input("Enter Stock Quantity: "))
+            product_id = get_integer("Enter Product ID: ")
+            name = get_text("Enter Product Name: ")
+            price = get_float("Enter Product Price: ")
+            quantity = get_integer("Enter Stock Quantity: ")
+
             if inventory.edit(product_id, name, price, quantity):
                 print(f"Medicine is edited.")
             else:
                 print("Medicine not found.")
         elif choice == 4:
-            product_id = int(input("Enter Product ID: "))
+            product_id = get_integer("Enter Product ID: ")
 
             if inventory.delete(product_id):
                 print("Medicine deleted successfully.")
