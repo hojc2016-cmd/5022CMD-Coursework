@@ -1,3 +1,5 @@
+from time import perf_counter_ns
+
 class Medicine:
     def __init__(self, product_id, name, price, quantity):
         self.product_id = product_id
@@ -95,6 +97,41 @@ class HashTable:
                 return True
         return False
 
+    def display(self):
+        total_products = sum(1 for product in self.table if product is not None)
+
+        occupied_percentage = (total_products / self.size) * 100
+
+        print("\n==== Current Inventory ====")
+        print(f"Total products / Table size: {total_products}/{self.size}")
+        print(f"Occupied: {occupied_percentage:.1f}%")
+
+        border = (
+            "+-------+------------+--------------------------+"
+            "------------+----------+"
+        )
+
+        print(border)
+        print(
+            f"| {'Index':<5} | {'Product ID':<10} | {'Name':<24} | "
+            f"{'Price (RM)':>10} | {'Quantity':>8} |"
+        )
+        print(border)
+
+        for index, product in enumerate(self.table):
+            if product is None:
+                print(
+                    f"| {index:<5} | {'-':<10} | {'(empty)':<24} | "
+                    f"{'-':>10} | {'-':>8} |"
+                )
+            else:
+                print(
+                    f"| {index:<5} | {product.product_id:<10} | {product.name:<24} | "
+                    f"{product.price:>10.2f} | {product.quantity:>8} |"
+                )
+
+        print(border)
+
 def get_integer(prompt):
     value = None
 
@@ -128,62 +165,176 @@ def get_text(prompt):
 
     return value
 
+def get_product_id(prompt):
+    product_id = get_integer(prompt)
+
+    while product_id <= 0:
+        print("Product ID must be greater than 0.")
+        product_id = get_integer(prompt)
+
+    return product_id
+
+def get_quantity(prompt):
+    quantity = get_integer(prompt)
+
+    while quantity < 0:
+        print("Stock quantity cannot be negative.")
+        quantity = get_integer(prompt)
+
+    return quantity
+
+def get_price(prompt):
+    price = get_float(prompt)
+
+    while price <= 0:
+        print("Product price must be greater than zero.")
+        price = get_float(prompt)
+
+    return price
+
 def print_menu():
-    print("==== Pharmacy Inventory System ===")
+    print("\n==== Pharmacy Inventory System ===")
     print("1. Insert Product")
     print("2. Search Product")
     print("3. Edit Product")
     print("4. Delete Product")
-    print("5. Exit")
+    print("5. Show Inventory")
+    print("6. Exit")
+
+def insert_product(inventory):
+    product_id = get_product_id("Enter New Product ID: ")
+
+    if inventory.search(product_id) is not False:
+        print(f"Product ID {product_id} already exists.")
+        return
+
+    name = get_text("Enter Product Name: ")
+    price = get_price("Enter Product Price: ")
+    quantity = get_quantity("Enter Stock Quantity: ")
+    medicine = Medicine(product_id, name, price, quantity)
+
+    if inventory.insert(medicine):
+        print("Medicine is added")
+    else:
+        print("Could not add product, the hash table is full.")
+
+def search_product(inventory):
+    product_id = get_product_id("Enter Product ID to Search: ")
+    product = inventory.search(product_id)
+
+    if product is not False:
+        print("Product Found!")
+        print(product)
+    else:
+        print("Medicine not found.")
+
+    medicines = [
+        product
+        for product in inventory.table
+        if product is not None
+    ]
+
+    compare_search(inventory, medicines, product_id)
+
+
+def edit_product(inventory):
+    product_id = get_product_id("Enter Product ID to Edit: ")
+    product = inventory.search(product_id)
+
+    if product is False:
+        print("Medicine not found.")
+        return
+
+    print("Current medicine details:")
+    print(product)
+
+    name = get_text("Enter New Product Name: ")
+    price = get_price("Enter New Product Price: ")
+    quantity = get_quantity("Enter New Stock Quantity: ")
+
+    if inventory.edit(product_id, name, price, quantity):
+        print("Medicine is edited.")
+    else:
+        print("Medicine not found.")
+
+
+def delete_product(inventory):
+    product_id = get_product_id("Enter Product ID to Delete: ")
+
+    if inventory.delete(product_id):
+        print("Medicine deleted successfully.")
+    else:
+        print("Medicine not found.")
+
+def array_search(medicines, product_id):
+    for medicine in medicines:
+        if medicine.product_id == product_id:
+            return medicine
+
+    return False
+
+def compare_search(inventory, medicines, product_id):
+    repetitions = 1000
+
+    start = perf_counter_ns()
+
+    for _ in range(repetitions):
+        inventory.search(product_id)
+
+    hash_time = perf_counter_ns() - start
+
+    start = perf_counter_ns()
+
+    for _ in range(repetitions):
+        array_search(medicines, product_id)
+
+    array_time = perf_counter_ns() - start
+
+    print(f"\nSearching for product ID: {product_id}")
+    print(f"Number of searches: {repetitions}")
+
+    print(f"Hash table total: {hash_time:,} ns")
+    print(f"Array total:      {array_time:,} ns")
+
+    print(f"Hash table average: {hash_time / repetitions:.2f} ns/search")
+    print(f"Array average:      {array_time / repetitions:.2f} ns/search")
 
 def main():
-    table_size = 5
+    table_size = 11
     inventory = HashTable(table_size)
+
+    medicines = [
+        Medicine(101, "Paracetamol", 5.50, 50),
+        Medicine(123, "Cough Syrup", 12.00, 20),
+        Medicine(111, "Antibiotics", 9.00, 30),
+        Medicine(155, "Vitamin A", 10.00, 45),
+        Medicine(156, "Vitamin B", 9.50, 40)
+    ]
+
+    for medicine in medicines:
+        inventory.insert(medicine)
 
     choice = 0
 
-    while choice != 5:
+    while choice != 6:
         print_menu()
-        choice = get_integer("Enter choice(1-5): ")
+        choice = get_integer("Enter choice(1-6): ")
+
+        while choice < 1 or choice > 6:
+            print("Please choose a number from 1 to 6.")
+            choice = get_integer("Enter choice (1-6): ")
 
         if choice == 1:
-            product_id = get_integer("Enter Product ID: ")
-            name = get_text("Enter Product Name: ")
-            price = get_float("Enter Product Price: ")
-            quantity = get_integer("Enter Stock Quantity: ")
-            medicine = Medicine(product_id, name, price, quantity)
-
-            if inventory.insert(medicine):
-                print(f"Medicine is added")
-            else:
-                print(f"Could not add product {medicine.product_id}")
+            insert_product(inventory)
         elif choice == 2:
-            product_id = get_integer("Enter Product ID: ")
-            search_result = inventory.search(product_id)
-
-            if search_result is not False:
-                print(search_result)
-            else:
-                print("Medicine not found")
-
+            search_product(inventory)
         elif choice == 3:
-            product_id = get_integer("Enter Product ID: ")
-            name = get_text("Enter Product Name: ")
-            price = get_float("Enter Product Price: ")
-            quantity = get_integer("Enter Stock Quantity: ")
-
-            if inventory.edit(product_id, name, price, quantity):
-                print(f"Medicine is edited.")
-            else:
-                print("Medicine not found.")
+            edit_product(inventory)
         elif choice == 4:
-            product_id = get_integer("Enter Product ID: ")
-
-            if inventory.delete(product_id):
-                print("Medicine deleted successfully.")
-            else:
-                print("Medicine not found.")
+            delete_product(inventory)
         elif choice == 5:
+            inventory.display()
+        elif choice == 6:
             print("Exiting Inventory System. Goodbye!")
 
 if __name__ == "__main__":
