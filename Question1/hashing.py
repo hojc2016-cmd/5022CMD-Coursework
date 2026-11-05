@@ -226,7 +226,8 @@ def insert_product(inventory):
     medicine = Medicine(product_id, name, price, quantity)
 
     if inventory.insert(medicine):
-        print("Medicine is added")
+        index = inventory.table.index(medicine)
+        print(f"Medicine is added at index {index}.")
     else:
         print("Could not add product, the hash table is full.")
 
