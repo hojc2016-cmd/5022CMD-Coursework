@@ -19,23 +19,39 @@ class HashTable:
     def __init__(self, size):
         self.size = size
         self.table = [None] * size
+        self.deleted = [False] * size
 
     def hash_numeric(self, product_id):
         return product_id % self.size
 
     def insert(self, product):
         start = self.hash_numeric(product.product_id)
+        first_deleted = None
 
         for i in range(self.size):
             index = (start + i) % self.size
             existing_product = self.table[index]
 
+            if self.deleted[index]:
+                if first_deleted is None:
+                    first_deleted = index
+                continue
+
             if existing_product is None:
+                if first_deleted is not None:
+                    index = first_deleted
+
                 self.table[index] = product
+                self.deleted[index] = False
                 return True
 
             if existing_product.product_id == product.product_id:
                 return False
+
+        if first_deleted is not None:
+            self.table[first_deleted] = product
+            self.deleted[first_deleted] = False
+            return True
 
         return False
 
@@ -46,6 +62,9 @@ class HashTable:
             index = (start + i) % self.size
             product = self.table[index]
 
+            if self.deleted[index]:
+                continue
+
             if product is None:
                 return False
 
@@ -55,22 +74,15 @@ class HashTable:
         return False
 
     def edit(self, product_id, name, price, quantity):
-        start = self.hash_numeric(product_id)
+        product = self.search(product_id)
 
-        for i in range(self.size):
-            index = (start + i) % self.size
-            product = self.table[index]
+        if product is False:
+            return False
 
-            if product is None:
-                return False
-
-            if product.product_id == product_id:
-                product.name = name
-                product.price = price
-                product.quantity = quantity
-                return True
-
-        return False
+        product.name = name
+        product.price = price
+        product.quantity = quantity
+        return True
 
     def delete(self, product_id):
         start = self.hash_numeric(product_id)
@@ -79,22 +91,17 @@ class HashTable:
             index = (start + i) % self.size
             product = self.table[index]
 
+            if self.deleted[index]:
+                continue
+
             if product is None:
                 return False
 
             if product.product_id == product_id:
                 self.table[index] = None
-
-                next_index = (index + 1) % self.size
-
-                while self.table[next_index] is not None:
-                    product_reinsert = self.table[next_index]
-                    self.table[next_index] = None
-                    self.insert(product_reinsert)
-
-                    next_index = (next_index + 1) % self.size
-
+                self.deleted[index] = True
                 return True
+
         return False
 
     def display(self):
@@ -120,8 +127,13 @@ class HashTable:
 
         for index, product in enumerate(self.table):
             if product is None:
+                if self.deleted[index]:
+                    status = "(deleted)"
+                else:
+                    status = "(empty)"
+
                 print(
-                    f"| {index:<5} | {'-':<10} | {'(empty)':<24} | "
+                    f"| {index:<5} | {'-':<10} | {status:<24} | "
                     f"{'-':>10} | {'-':>8} |"
                 )
             else:
@@ -307,8 +319,8 @@ def main():
         Medicine(101, "Paracetamol", 5.50, 50),
         Medicine(123, "Cough Syrup", 12.00, 20),
         Medicine(111, "Antibiotics", 9.00, 30),
-        Medicine(155, "Vitamin A", 10.00, 45),
-        Medicine(156, "Vitamin B", 9.50, 40)
+        Medicine(150, "Vitamin A", 10.00, 45),
+        Medicine(151, "Vitamin B", 9.50, 40)
     ]
 
     for medicine in medicines:
