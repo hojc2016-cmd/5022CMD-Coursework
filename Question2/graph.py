@@ -47,21 +47,24 @@ class Course:
         )
 
     def display_course(self):
-        print(self.courseName)
+        print(f"{self.courseCode} - {self.courseName}")
 
 
 def print_menu():
-    print("\nCourse prerequisite system")
-    print("1. Display all course names")
-    print("2. View course details")
-    print("3. View prerequisites")
-    print("4. View courses unlocked")
+    print("\n==== University Course Prerequisite System ====")
+    print("1. View All Course")
+    print("2. View Course Details")
+    print("3. View Prerequisites")
+    print("4. View Courses Unlocked by a Course")
     print("5. Exit")
 
 
 def display_courses(courses):
     print("Available courses")
+    count = 0
     for course in courses.values():
+        count += 1
+        print(f"{count}. ", end="")
         course.display_course()
 
 
@@ -71,7 +74,17 @@ def view_course_details(courses):
 
 
 def view_prerequisites(courses, course_graph):
-    pass
+    code = input("Enter course code: ").strip().upper()
+    prerequisites = course_graph.listIncomingAdjacentVertex(code)
+
+    if prerequisites is None:
+        print("Course not found.")
+    elif not prerequisites:
+        print("This course has no prerequisites.")
+    else:
+        print(f"Prerequisites for {code} - {courses[code].courseName}:")
+        for prerequisite_code in prerequisites:
+            courses[prerequisite_code].display_course()
 
 
 def view_unlocked_courses(courses, course_graph):
