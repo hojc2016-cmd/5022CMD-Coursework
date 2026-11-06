@@ -49,6 +49,34 @@ class Course:
     def display_course(self):
         print(f"{self.courseCode} - {self.courseName}")
 
+def get_integer(prompt):
+    value = None
+
+    while value is None:
+        try:
+            value = int(input(prompt))
+        except ValueError:
+            print("Please enter a whole number.")
+
+    return value
+
+def get_text(prompt):
+    value = input(prompt).strip()
+
+    while not value:
+        print("This field cannot be empty.")
+        value = input(prompt).strip()
+
+    return value
+
+def get_course_code(prompt, courses):
+    code = get_text(prompt).upper()
+
+    while code not in courses:
+        print("Course not found. Please enter an existing course code.")
+        code = get_text(prompt).upper()
+
+    return code
 
 def print_menu():
     print("\n==== University Course Prerequisite System ====")
@@ -59,7 +87,7 @@ def print_menu():
     print("5. Exit")
 
 
-def display_courses(courses):
+def view_all_courses(courses):
     print("Available courses")
     count = 0
     for course in courses.values():
@@ -69,12 +97,12 @@ def display_courses(courses):
 
 
 def view_course_details(courses):
-    code = input("Enter course code: ").strip().upper()
+    code = get_course_code("Enter course code: ", courses)
     print(courses[code])
 
 
 def view_prerequisites(courses, course_graph):
-    code = input("Enter course code: ").strip().upper()
+    code = get_course_code("Enter course code: ", courses)
     prerequisites = course_graph.listIncomingAdjacentVertex(code)
 
     if prerequisites is None:
@@ -88,7 +116,20 @@ def view_prerequisites(courses, course_graph):
 
 
 def view_unlocked_courses(courses, course_graph):
-    pass
+    code = get_course_code("Enter course code: ", courses)
+
+    if code not in course_graph.graph:
+        print("Course not found.")
+        return
+
+    unlocked_courses = course_graph.graph[code]
+
+    if not unlocked_courses:
+        print("This course unlocks no other courses.")
+    else:
+        print(f"Courses unlocked by {code} - {courses[code].courseName}:")
+        for unlocked_code in unlocked_courses:
+            courses[unlocked_code].display_course()
 
 
 def main():
@@ -110,20 +151,24 @@ def main():
     course_graph.addEdge("CS201", "CS301")
     course_graph.addEdge("CS201", "CS302")
 
-    choice = ""
-    while choice != "5":
+    choice = 0
+    while choice != 5:
         print_menu()
-        choice = input("Enter choice (1-5): ")
+        choice = get_integer("Enter choice (1-5): ")
 
-        if choice == "1":
-            display_courses(courses)
-        elif choice == "2":
+        while choice < 1 or choice > 5:
+            print("Please choose a number from 1 to 5.")
+            choice = get_integer("Enter choice (1-5): ")
+
+        if choice == 1:
+            view_all_courses(courses)
+        elif choice == 2:
             view_course_details(courses)
-        elif choice == "3":
+        elif choice == 3:
             view_prerequisites(courses, course_graph)
-        elif choice == "4":
+        elif choice == 4:
             view_unlocked_courses(courses, course_graph)
-        elif choice == "5":
+        elif choice == 5:
             print("Exiting Course Prerequisite System. Goodbye!")
 
 
