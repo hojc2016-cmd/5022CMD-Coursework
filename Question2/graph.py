@@ -19,6 +19,16 @@ class Graph:
         self.graph[vertex_start].append(vertex_end)
         return True
 
+    def removeEdge(self, vertex_start, vertex_end):
+        if vertex_start not in self.graph:
+            return False
+
+        if vertex_end not in self.graph[vertex_start]:
+            return False
+
+        self.graph[vertex_start].remove(vertex_end)
+        return True
+
     def listIncomingAdjacentVertex(self, vertex):
         if vertex not in self.graph:
             return None
@@ -84,11 +94,19 @@ def print_menu():
     print("2. View Course Details")
     print("3. View Prerequisites")
     print("4. View Courses Unlocked by a Course")
-    print("5. Exit")
+    print("5. Add New Course")
+    print("6. Add Prerequisite")
+    print("7. Remove Prerequisite")
+    print("8. Exit")
 
 
 def view_all_courses(courses):
-    print("Available courses")
+    total = len(courses)
+    if total == 10:
+        print(f"Available courses: {total}/10 (full)")
+    else:
+        print(f"Available courses: {total}/10")
+
     count = 0
     for course in courses.values():
         count += 1
@@ -131,6 +149,53 @@ def view_unlocked_courses(courses, course_graph):
         for unlocked_code in unlocked_courses:
             courses[unlocked_code].display_course()
 
+def add_course(courses, course_graph):
+    if len(courses) >= 10:
+        print("The system already has 10 courses.")
+        return
+
+    code = get_text("Enter new course code: ").upper()
+    if code in courses:
+        print("Course code already exists.")
+        return
+
+    name = get_text("Enter course name: ")
+
+    credit_hours = get_integer("Enter credit hours: ")
+    while credit_hours <= 0:
+        print("Credit hours must be greater than zero.")
+        credit_hours = get_integer("Enter credit hours: ")
+
+    level = get_text("Enter level (core/elective): ").lower()
+    while level not in ("core", "elective"):
+        print("Please enter core or elective.")
+        level = get_text("Enter level (core/elective): ").lower()
+
+    course_graph.addVertex(code)
+    courses[code] = Course(code, name, credit_hours, level)
+    print(f"Added {code} - {name}.")
+
+def add_prerequisite(courses, course_graph):
+    course_code = get_course_code("Course to add a prerequisite: ", courses)
+    prerequisite_code = get_course_code("Prerequisite to add: ", courses)
+
+    if course_code == prerequisite_code:
+        print("A course cannot be its own prerequisite.")
+        return
+
+    if course_graph.addEdge(prerequisite_code, course_code):
+        print(f"{prerequisite_code} is now a prerequisite for {course_code}.")
+    else:
+        print(f"{prerequisite_code} is already a prerequisite for {course_code}.")
+
+def remove_prerequisite(courses, course_graph):
+    course_code = get_course_code("Course to remove a prerequisite: ", courses)
+    prerequisite_code = get_course_code("Prerequisite to remove: ", courses)
+
+    if course_graph.removeEdge(prerequisite_code, course_code):
+        print(f"Removed {prerequisite_code} as a prerequisite for {course_code}.")
+    else:
+        print(f"{prerequisite_code} is not a prerequisite for {course_code}.")
 
 def main():
     courses = {
@@ -152,13 +217,13 @@ def main():
     course_graph.addEdge("CS201", "CS302")
 
     choice = 0
-    while choice != 5:
+    while choice != 8:
         print_menu()
-        choice = get_integer("Enter choice (1-5): ")
+        choice = get_integer("Enter choice (1-8): ")
 
-        while choice < 1 or choice > 5:
-            print("Please choose a number from 1 to 5.")
-            choice = get_integer("Enter choice (1-5): ")
+        while choice < 1 or choice > 8:
+            print("Please choose a number from 1 to 8.")
+            choice = get_integer("Enter choice (1-8): ")
 
         if choice == 1:
             view_all_courses(courses)
@@ -169,6 +234,12 @@ def main():
         elif choice == 4:
             view_unlocked_courses(courses, course_graph)
         elif choice == 5:
+            add_course(courses, course_graph)
+        elif choice == 6:
+            add_prerequisite(courses, course_graph)
+        elif choice == 7:
+            remove_prerequisite(courses, course_graph)
+        elif choice == 8:
             print("Exiting Course Prerequisite System. Goodbye!")
 
 
