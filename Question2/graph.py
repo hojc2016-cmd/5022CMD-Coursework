@@ -41,6 +41,23 @@ class Graph:
 
         return incoming
 
+    def hasPath(self, start, target):
+        pending = [start]
+        visited = {start}
+
+        while pending:
+            current = pending.pop()
+
+            if current == target:
+                return True
+
+            for neighbour in self.graph[current]:
+                if neighbour not in visited:
+                    visited.add(neighbour)
+                    pending.append(neighbour)
+
+        return False
+
 class Course:
     def __init__(self, courseCode, courseName, creditHours, level):
         self.courseCode = courseCode
@@ -181,6 +198,10 @@ def add_prerequisite(courses, course_graph):
 
     if course_code == prerequisite_code:
         print("A course cannot be its own prerequisite.")
+        return
+
+    if course_graph.hasPath(course_code, prerequisite_code):
+        print("Cannot add prerequisite, this would create a cycle.")
         return
 
     if course_graph.addEdge(prerequisite_code, course_code):
