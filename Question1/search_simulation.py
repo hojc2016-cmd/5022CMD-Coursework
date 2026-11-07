@@ -21,7 +21,6 @@ def measure_array_search(medicines, product_id):
 
 
 def compare_search(inventory, medicines, product_id, description):
-    # Check correctness and warm up both searches before measuring.
     for repeat in range(100):
         hash_result = inventory.search(product_id)
         array_result = hashing.array_search(medicines, product_id)
@@ -32,7 +31,6 @@ def compare_search(inventory, medicines, product_id, description):
     array_total = 0
 
     for round_number in range(ROUNDS):
-        # Alternate the order to reduce the effect of always running one first.
         if round_number % 2 == 0:
             hash_total += measure_hash_search(inventory, product_id)
             array_total += measure_array_search(medicines, product_id)
@@ -52,7 +50,6 @@ def run_simulation(number_of_products, create_collisions=False):
     inventory = hashing.HashTable(table_size)
     medicines = []
 
-    # Create records once and store the same objects in both structures.
     for number in range(1, number_of_products + 1):
         if create_collisions:
             product_id = number * table_size
@@ -99,7 +96,6 @@ def main():
     for number_of_products in [10, 100, 1000, 5000]:
         run_simulation(number_of_products)
 
-    # Same capacity and record count as the 1,000-record case, but colliding IDs.
     run_simulation(1000, create_collisions=True)
 
 
